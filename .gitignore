@@ -1,0 +1,8 @@
+*.DS_Store
+*.pyc
+__pycache__/
+*.code-workspace
+LICENSE
+Dockerfile
+.vscode/
+tmp.py
