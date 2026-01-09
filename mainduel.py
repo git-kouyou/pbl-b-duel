@@ -1,17 +1,15 @@
-# 6班solo ソースコード
+# 6班duel ソースコー
 # python version: 3.13.3
 
 import random
 import typing
 from reachable import Reachable
-from gamedata import Status, GameData, Type
-from simulation import Simulation
+from gamedata import Status, SnakeData, BoardData, Type
 
 X = 0
 Y = 1
-MAX_DEPTH = 30
 
-DEBUG = False
+DEBUG = True
 
 def info() -> typing.Dict:
     print("INFO")
@@ -26,208 +24,208 @@ def info() -> typing.Dict:
 
 # start is called when your Battlesnake begins a game
 def start(game_state: typing.Dict):
-    GameData.initialized = False
-    GameData(game_state)
+    BoardData.is_initialized = False
+    BoardData(game_state)
     print("GAME START")
 
 # end is called when your Battlesnake finishes a game
 def end(game_state: typing.Dict):
     print("GAME OVER\n")
 
-def next_move(data: GameData) -> str:
+def next_move(board_data: BoardData, your_snake_data: SnakeData, enemy_snake_data: SnakeData) -> str:
     next_move = "None"
-    safes_around = data.safes_around()
+    safes_around = your_snake_data.safes_around()
+    sorted_foods = sorted(list(your_snake_data.foods), key=lambda f: abs(f[X] - your_snake_data.head()[X]) + abs(f[Y] - your_snake_data.head()[Y]))
+    kill_moves = [m for m in your_snake_data.safes_around() if board_data.board[your_snake_data.next_head_position(your_snake_data.head(), m)[Y]][your_snake_data.next_head_position(your_snake_data.head(), m)[X]] <= Type.kill.value]
 
     #体が極小の時: 優先度1
-    if data.length() <= 2:
-        if data.no_foods():
-            next_move = random.choice(data.no_foods())
-        elif data.safes_around():
-            next_move = random.choice(data.safes_around())
-        return next_move
-
-    # 指定ルートがある場合(エサを探すとき): 優先度2
-    if GameData.isDisignated:
-        if GameData.disignated_route:
-            next_move = GameData.disignated_route.popleft()
-            next_head = data.next_head_position(data.head(), next_move)
-
-            if not (0 <= next_head[X] < GameData.board_width and 0 <= next_head[Y] < GameData.board_height and data.board[next_head[Y]][next_head[X]] <= Type.safe.value):
-                #指定ルートが盤面外or安全でない場合，指定ルートを破棄してループ動作に戻る
-                GameData.isDisignated = False
-                GameData.status = Status.loop
-                next_move = "None"
-            else:
-                if DEBUG:
-                    print(f"Disignated Move: {next_move}")
-                return next_move
-        else:
-            GameData.isDisignated = False
-            GameData.status = Status.loop
-
-    # 体力に応じたエサ探索開始長さの設定
-    starting_length = 0
-    if 3 <= data.length() <= 4:
-        starting_length = 12
-    elif data.length() <= 10:
-        starting_length = 10
-    elif data.length() <= 15:
-        starting_length = 15
-    elif data.length() <= 20:
-        starting_length = 16
-    elif data.length() <= 24:
-        starting_length = 20
-    elif data.length() <= 30:
-        starting_length = 24
-    else:
-        starting_length = 30
-
-    early_state = data.length() <= 10
-    combat_moves = data.get_combat_moves()
-
-    if not early_state and data.longer_than_opponent() and combat_moves["kill"]:
-        next_move = random.choice(combat_moves["kill"])
-
+    if your_snake_data.length() <= 2:
+        if your_snake_data.no_foods():
+            next_move = random.choice(your_snake_data.no_foods())
+        elif your_snake_data.safes_around():
+            next_move = random.choice(your_snake_data.safes_around())
         return next_move
     
-    safes_after_combat = [m for m in data.safes_around() if m not in combat_moves["death"]]
-
-    # エサ探索: 優先度3
-    if early_state or data.shorter_than_opponent() or data.health <= starting_length:
-        sorted_foods = sorted(list(data.foods), key = lambda f: abs(f[X] - data.head()[X]) + abs(f[Y] - data.head()[Y]))
-        all_tier1 = []
-        all_tier2 = []
-        all_tier3 = []
-        for food_target in sorted_foods:
-            tmp_food = {food_target}
-
-            simulator = Simulation(game_data = data, max_depth = min(data.health, MAX_DEPTH))
-            original_foods = data.foods
-            data.foods = tmp_food
-
-            simulator.route_search(data = data)
-            data.foods = original_foods
-        
-            if(simulator.result_tier1):
-                all_tier1.extend(simulator.result_tier1)
-            elif simulator.result_tier2:
-                all_tier2.extend(simulator.result_tier2)
-            elif simulator.result_tier3:
-                all_tier3.extend(simulator.result_tier3)
-
-        if all_tier1:
-            GameData.disignated_route = max(all_tier1, key = len)
-            print(f"Tire 1 route: {GameData.disignated_route}")
-        elif all_tier2:
-            GameData.disignated_route = max(all_tier2, key = len)
-            print(f"Tire 2 route: {GameData.disignated_route}")
-        elif all_tier3:
-            GameData.disignated_route = max(all_tier3, key = len)
-            print(f"Tire 3 route: {GameData.disignated_route}")
-
-        if GameData.disignated_route:
-            GameData.isDisignated = True
-            GameData.status = Status.eat_food
-            next_move = GameData.disignated_route.popleft()
-            if DEBUG:
-                print(f"Disignated Move: {next_move}")
-            return next_move
-        print("No route to food found!")
-
-        if safes_after_combat:
-            next_move = random.choice(safes_after_combat)
-            return next_move
-        
-    # 進行可能方向がないor一つしかない場合の処理: 優先度4
-    if not safes_around:
-        if data.empty_around():
-            next_move = random.choice(data.empty_around())
-        else:
-            if DEBUG:
-                print("No safe move detected! move down!")
-            next_move = "down"
-        return next_move
-    elif len(safes_around) == 1:
-        if DEBUG:
-            print("Only one safe move detected!")
-        next_move = safes_around[0]
-        return next_move
-
-    # ループを探す動作: 優先度5
-    if GameData.status == Status.loop:
-        tier1 = []
-        tier2 = []
-        tier3 = []
-        tier4 = []
-        distance = {"up": data.tail()[Y] - data.head()[Y],
-                    "down": data.head()[Y] - data.tail()[Y],
-                    "right": data.tail()[X] - data.head()[X],
-                    "left": data.head()[X] - data.tail()[X]}
-        
-        for move in safes_around:
-            next_head = data.next_head_position(data.head(), move)
-            new_body = data.bodies.copy()
+    bfs = Reachable(board_data)
+    reachable_food_avoidance = []
+    reachable = []
+    my_tail = your_snake_data.tail()
+    enemy_tail_reachable = []
+    enemy_tail = enemy_snake_data.tail()
+    if your_snake_data.length() >= 3:
+        board_data.board[enemy_tail[Y]][enemy_tail[X]] = Type.body.value  # 自分の尾を体判定に変更
+        for move in your_snake_data.safes_around():
+            next_head = your_snake_data.next_head_position(your_snake_data.head(), move)
+            new_body = your_snake_data.bodies.copy()
             new_body.pop()
             new_body.appendleft(next_head)
-            if Reachable(bodies = new_body, foods = data.foods, width = GameData.board_width, height = GameData.board_height).is_reachable_food_avoidance(next_head, data.tail()):
-                if distance[move] > 0:
-                    tier1.append(move)
-                else:
-                    tier2.append(move)
-            elif Reachable(bodies = new_body, foods = data.foods, width = GameData.board_width, height = GameData.board_height).is_reachable(next_head, data.tail()):
-                if distance[move] > 0:
-                    tier3.append(move)
-                else:
-                    tier4.append(move)
-        if tier1:
-            next_move = max(tier1, key = lambda m: distance[m])
-        elif tier2:
-            next_move = random.choice(tier2)
-        elif tier3:
-            next_move = max(tier3, key = lambda m: distance[m]) 
-        elif tier4:
-            next_move = random.choice(tier4)
-        else:
-            if data.heading() in data.no_foods():
-                next_move = data.heading()
-            elif data.no_foods():
-                next_move = random.choice(data.no_foods())
+            if bfs.is_reachable_food_avoidance(next_head, your_snake_data.tail()):
+                reachable_food_avoidance.append(move)
+            if bfs.is_reachable(next_head, your_snake_data.tail()):
+                reachable.append(move)
+        board_data.board[enemy_tail[Y]][enemy_tail[X]] = Type.safe.value
+        
+    #体が極小の時: 優先度1
+    if your_snake_data.length() <= 2:
+        if your_snake_data.no_foods():
+            next_move = random.choice(your_snake_data.no_foods())
+        elif your_snake_data.safes_around():
+            next_move = random.choice(your_snake_data.safes_around())
+        return next_move
     
-    if next_move == "None":
-        if safes_after_combat:
-            next_move = random.choice(safes_after_combat)
-        elif safes_around:
-            next_move = random.choice(safes_around)
+    #head-to-headキル
+    if kill_moves:
+        kill_safe_moves = [m for m in kill_moves if m in reachable]
+        if kill_safe_moves:
+            next_move = random.choice(kill_safe_moves)
+            if DEBUG:
+                print(f"Executing kill move: {next_move}")
+            return next_move
+    
+    #体の長さが15になるまで or 敵より短いとき
+    if(your_snake_data.length() <= 7 or your_snake_data.length() < enemy_snake_data.length()):
+        for food_target in sorted_foods:
+        
+            target_moves = []
+            head = your_snake_data.head()
+            tx, ty = food_target
+        
+        # 餌の方向を特定
+            if tx > head[X] and 'right' in safes_around: target_moves.append('right')
+            if tx < head[X] and 'left' in safes_around: target_moves.append('left')
+            if ty > head[Y] and 'up' in safes_around: target_moves.append('up')
+            if ty < head[Y] and 'down' in safes_around: target_moves.append('down')
 
-    return next_move
+            target_safe_moves = [m for m in target_moves if m in reachable]
+
+            if target_safe_moves:
+                next_move = random.choice(target_safe_moves)
+                if DEBUG: 
+                    print(f"Targeting food at {food_target} with move {next_move}")
+                return next_move
+
+    # 相手の尾追い
+    if your_snake_data.length() >= enemy_snake_data.length():
+        board_data.board[my_tail[Y]][my_tail[X]] = Type.body.value  # 自分の尾を体判定に変更
+        for move in your_snake_data.safes_around():
+            next_head = your_snake_data.next_head_position(your_snake_data.head(), move)
+            new_body = your_snake_data.bodies.copy()
+            new_body.pop()
+            new_body.appendleft(next_head)
+            if bfs.is_reachable(next_head, enemy_tail):
+                if DEBUG:
+                    print(f"reachable list added")
+                enemy_tail_reachable.append(move)
+
+        board_data.board[my_tail[Y]][my_tail[X]] = Type.safe.value  # 自分の尾を体判定に変更
+        """
+        tx, ty = enemy_tail
+        head = your_snake_data.head()
+
+        if tx > head[X] and 'right' in safes_around: enemy_tail_reachable.append('right')
+        if tx < head[X] and 'left' in safes_around: enemy_tail_reachable.append('left')
+        if ty > head[Y] and 'up' in safes_around: enemy_tail_reachable.append('up')
+        if ty < head[Y] and 'down' in safes_around: enemy_tail_reachable.append('down')
+        """
+        """
+        if reachable:
+            next_move = random.choice(reachable)
+            return next_move
+        """
+    # ここまで追加部分
+    
+    if enemy_tail_reachable:
+        next_move = random.choice(enemy_tail_reachable)
+        if next_move not in reachable:
+            if reachable:
+                if DEBUG:
+                    print("Enemy tail reachable moves not reachable, choosing random reachable move")
+                next_move = random.choice(reachable)
+                return next_move
+            else:
+                if DEBUG:
+                    print("Enemy tail reachable moves not reachable, but no reachable moves available")
+                next_move = random.choice(safes_around)
+                return next_move
+        else:
+            if DEBUG:
+                print(f"Chasing enemy tail with move {next_move}")
+            return next_move
+    
+    if reachable:
+        next_move = random.choice(reachable)
+        if DEBUG:
+            print("Choosing random reachable move")
+        return next_move
+    
+    if reachable_food_avoidance:
+        next_move = random.choice(reachable_food_avoidance)
+        if DEBUG:
+            print("Choosing random reachable_food_avoidance move")
+        return next_move
+    
+    if next_move == "None" and safes_around:
+        next_move = random.choice(safes_around)
+        if DEBUG:
+            print("No reachable moves, choosing random safe move")
+        return next_move
 
 # 初期化やデバッグ表示など
 def move(game_state: typing.Dict) -> typing.Dict:
-    data = GameData(game_state)
-    next_move_result = next_move(data)
-    GameData.previous_foods = set(data.foods)
-    
+    board_data = BoardData(game_state)
+    your_snake_data = None
+    enemy_snake_data = None
+    for snake_data in game_state["board"]["snakes"]:
+        if snake_data["id"] == game_state["you"]["id"]:
+            your_snake_data = SnakeData(board_data=board_data, snake_data=snake_data)
+        else:
+            enemy_snake_data = SnakeData(board_data=board_data, snake_data=snake_data)
+
+    if enemy_snake_data is None:
+        enemy_snake_data = your_snake_data
     reachable_food_avoidance = []
     reachable = []
-    if data.length() >= 3:
-        bsf = Reachable(bodies = data.bodies, foods = data.foods, width = GameData.board_width, height = GameData.board_height)
-        for move in data.safes_around():
-            next_head = data.next_head_position(data.head(), move)
-            new_body = data.bodies.copy()
+    enemy_tail_reachable = []
+    # 相手の尾追い
+    if your_snake_data.length() >= enemy_snake_data.length() - 3:
+        enemy_tail = enemy_snake_data.tail()
+
+        bfs = Reachable(board_data)
+        for move in your_snake_data.safes_around():
+            next_head = your_snake_data.next_head_position(your_snake_data.head(), move)
+            new_body = your_snake_data.bodies.copy()
             new_body.pop()
             new_body.appendleft(next_head)
-            if bsf.is_reachable_food_avoidance(next_head, data.tail()):
+            if bfs.is_reachable(next_head, enemy_tail):
+                if DEBUG:
+                    print(f"reachable list added")
+                enemy_tail_reachable.append(move)
+        
+    if your_snake_data.length() >= 3:
+        bfs = Reachable(board_data)
+        for move in your_snake_data.safes_around():
+            next_head = your_snake_data.next_head_position(your_snake_data.head(), move)
+            new_body = your_snake_data.bodies.copy()
+            new_body.pop()
+            new_body.appendleft(next_head)
+            if bfs.is_reachable_food_avoidance(next_head, your_snake_data.tail()):
                 reachable_food_avoidance.append(move)
-            if bsf.is_reachable(next_head, data.tail()):
+            if bfs.is_reachable(next_head, your_snake_data.tail()):
                 reachable.append(move)
+    
+    next_move_result = next_move(board_data, your_snake_data, enemy_snake_data)
+    if next_move_result not in your_snake_data.safes_around():
+        next_move_result = random.choice(your_snake_data.safes_around())
 
     if DEBUG:
-        print(f"safes around: {data.safes_around()}, no_foods around: {data.no_foods()}")
-        print(f"foods: {data.foods}, bodies: {data.bodies}")
-        print(f"reachable: {reachable} reachable_food_avoidance: {reachable_food_avoidance}")
+        print(f"safes around: {your_snake_data.safes_around()}, no_foods around: {your_snake_data.no_foods()}")
+        print(f"foods: {your_snake_data.foods}, bodies: {your_snake_data.bodies}")
+        print(f"reachable: {reachable} reachable_food_avoidance: {reachable_food_avoidance} enemy_tail_reachable: {enemy_tail_reachable}")
+        """print(f"target moves: {your_snake_data.target_moves()}")"""
         print(f"MOVE {game_state['turn']}: {next_move_result}")
-        print(f"status: {GameData.status}")
-        data.print_board()
+        print(f"status: {SnakeData.status}")
+        board_data.print_board()
+
     return {"move": next_move_result}
 
 # Start server when `python main.py` is run
