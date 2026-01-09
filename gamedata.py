@@ -168,7 +168,12 @@ class SnakeData:
     def length(self):
         return len(self.bodies)
     
-    #相手の頭の周囲の座標    
+    # マンハッタン距離
+    def manhattan_distance(self, target):
+        head = self.head()
+        return abs(head[X] - target[X]) + abs(head[Y] - target[Y])
+    
+       #相手の頭の周囲の座標    
     def enemy_head_reachable(self, enemy_snake_data: 'SnakeData', board_data: 'BoardData') -> typing.Set[typing.Tuple[int, int]]:
         result = []
         head = enemy_snake_data.head()

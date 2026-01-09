@@ -1,10 +1,10 @@
-# 6班duel ソースコー
+# 6班duel ソースコード
 # python version: 3.13.3
 
 import random
 import typing
 from reachable import Reachable
-from gamedata import Status, SnakeData, BoardData, Type
+from gamedata import SnakeData, BoardData, Type
 
 X = 0
 Y = 1
@@ -36,6 +36,7 @@ def next_move(board_data: BoardData, your_snake_data: SnakeData, enemy_snake_dat
     next_move = "None"
     safes_around = your_snake_data.safes_around()
     sorted_foods = sorted(list(your_snake_data.foods), key=lambda f: abs(f[X] - your_snake_data.head()[X]) + abs(f[Y] - your_snake_data.head()[Y]))
+    closest_food = min(sorted_foods) if sorted_foods else None
     kill_moves = [m for m in your_snake_data.safes_around() if board_data.board[your_snake_data.next_head_position(your_snake_data.head(), m)[Y]][your_snake_data.next_head_position(your_snake_data.head(), m)[X]] <= Type.kill.value]
 
     #体が極小の時: 優先度1
@@ -73,7 +74,7 @@ def next_move(board_data: BoardData, your_snake_data: SnakeData, enemy_snake_dat
             next_move = random.choice(your_snake_data.safes_around())
         return next_move
     
-    #head-to-headキル
+    #head-to-head
     if kill_moves:
         kill_safe_moves = [m for m in kill_moves if m in reachable]
         if kill_safe_moves:
@@ -82,8 +83,8 @@ def next_move(board_data: BoardData, your_snake_data: SnakeData, enemy_snake_dat
                 print(f"Executing kill move: {next_move}")
             return next_move
     
-    #体の長さが15になるまで or 敵より短いとき
-    if(your_snake_data.length() <= 7 or your_snake_data.length() < enemy_snake_data.length()):
+    #体の長さが7になるまで or 体力が少ないとき
+    if(your_snake_data.length() <= 7 or your_snake_data.health <= your_snake_data.manhattan_distance(closest_food)*2):
         for food_target in sorted_foods:
         
             target_moves = []
