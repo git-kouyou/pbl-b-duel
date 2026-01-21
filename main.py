@@ -3,8 +3,7 @@
 
 import random
 import typing
-from boarddata import BoardData
-from snakedata import MySnakeData, EnemySnakeData
+from gamedata import BoardData, MySnakeData, EnemySnakeData
 
 X = 0
 Y = 1
@@ -25,7 +24,7 @@ def info() -> typing.Dict:
 # start is called when your Battlesnake begins a game
 def start(game_state: typing.Dict):
     BoardData.is_initialized = False
-    BoardData(game_state)
+    board_data = BoardData(game_state)
     print("GAME START")
 
 # end is called when your Battlesnake finishes a game
