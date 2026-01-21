@@ -59,14 +59,15 @@ class BoardData:
             if bodies[0] in BoardData.previous_foods:
                 ate_food = 1
             for i, body in enumerate(list(bodies)[:-1]):
-                self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 2 + ate_food  # 頭に近いほど値が大きい
-        if self.my_snake_data.length() > self.enemy_snake_data.length():
+                self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 1 + ate_food  # 頭に近いほど値が大きい
+        if self.my_snake_data.length() <= self.enemy_snake_data.length():
             for pos in self.enemy_snake_data.head_around():
                 self.board[pos[Y]][pos[X]] = Type.wall.value
 
     def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
         if start == goal:
             return True
+ 
         visited = [[False] * BoardData.width for _ in range(BoardData.height)]
         visited[start[Y]][start[X]] = True
 
@@ -196,11 +197,9 @@ class MySnakeData:
             MySnakeData.initialized = True
             print(f"Snake:{my_snake_data_input['name']}Data initialized")
 
-
-        # 盤面情報
-        self.board = board_data.board
         # 体の座標(tuple)一覧
         self.bodies = deque()
+        self.board_data = board_data
         seen = set()
         for body in my_snake_data_input["body"]:
             pos = (body["x"], body["y"])
@@ -238,13 +237,14 @@ class MySnakeData:
     def empty_around(self) -> set[str]:
         result = set()
         head = self.head()
-        if 0 <= head[X] + 1 < BoardData.width and self.board[head[Y]][head[X] + 1] <= Type.safe.value:
+        board = self.board_data.board
+        if 0 <= head[X] + 1 < BoardData.width and board[head[Y]][head[X] + 1] <= Type.safe.value:
             result.add("right")
-        if 0 <= head[Y] + 1 < BoardData.height and self.board[head[Y] + 1][head[X]] <= Type.safe.value:
+        if 0 <= head[Y] + 1 < BoardData.height and board[head[Y] + 1][head[X]] <= Type.safe.value:
             result.add("up")
-        if 0 <= head[X] - 1 < BoardData.width and self.board[head[Y]][head[X] - 1] <= Type.safe.value:
+        if 0 <= head[X] - 1 < BoardData.width and board[head[Y]][head[X] - 1] <= Type.safe.value:
             result.add("left")
-        if 0 <= head[Y] - 1 < BoardData.height and self.board[head[Y] - 1][head[X]] <= Type.safe.value:
+        if 0 <= head[Y] - 1 < BoardData.height and board[head[Y] - 1][head[X]] <= Type.safe.value:
             result.add("down")
         return result
     
@@ -252,22 +252,14 @@ class MySnakeData:
     def unsafes_around(self) -> set[str]:
         result = set()
         head = self.head()
-        if 0 <= head[X] + 1 < BoardData.width and self.board[head[Y]][head[X] + 1] >= Type.body.value + 1:
+        board = self.board_data.board 
+        if head[X] + 1 >= BoardData.width or board[head[Y]][head[X] + 1] >= Type.body.value + 1:
             result.add("right")
-        if 0 <= head[Y] + 1 < BoardData.height and self.board[head[Y] + 1][head[X]] >= Type.body.value + 1:
+        if head[Y] + 1 >= BoardData.height or board[head[Y] + 1][head[X]] >= Type.body.value + 1:
             result.add("up")
-        if 0 <= head[X] - 1 < BoardData.width and self.board[head[Y]][head[X] - 1] >= Type.body.value + 1:
+        if  head[X] - 1 < 0 or board[head[Y]][head[X] - 1] >= Type.body.value + 1:
             result.add("left")
-        if 0 <= head[Y] - 1 < BoardData.height and self.board[head[Y] - 1][head[X]] >= Type.body.value + 1:
-            result.add("down")
-        
-        if (head[X] + 1, head[Y]) in self.enemy_snake_data.head_around():
-            result.add("right")
-        if (head[X] , head[Y] + 1) in self.enemy_snake_data.head_around():
-            result.add("up")
-        if (head[X] - 1, head[Y]) in self.enemy_snake_data.head_around():
-            result.add("left")
-        if (head[X], head[Y] - 1) in self.enemy_snake_data.head_around():
+        if head[Y] - 1 < 0 or board[head[Y] - 1][head[X]] >= Type.body.value + 1:
             result.add("down")
 
         return result
@@ -276,13 +268,14 @@ class MySnakeData:
     def foods_around(self) -> set[str]:
         result = set()
         head = self.head()
-        if 0 <= head[X] + 1 < BoardData.width and self.board[head[Y]][head[X] + 1] == Type.food.value:
+        board = self.board_data.board
+        if 0 <= head[X] + 1 < BoardData.width and board[head[Y]][head[X] + 1] == Type.food.value:
             result.add("right")
-        if 0 <= head[Y] + 1 < BoardData.height and self.board[head[Y] + 1][head[X]] == Type.food.value:
+        if 0 <= head[Y] + 1 < BoardData.height and board[head[Y] + 1][head[X]] == Type.food.value:
             result.add("up")
-        if 0 <= head[X] - 1 < BoardData.width and self.board[head[Y]][head[X] - 1] == Type.food.value:
+        if 0 <= head[X] - 1 < BoardData.width and board[head[Y]][head[X] - 1] == Type.food.value:
             result.add("left")
-        if 0 <= head[Y] - 1 < BoardData.height and self.board[head[Y] - 1][head[X]] == Type.food.value:
+        if 0 <= head[Y] - 1 < BoardData.height and board[head[Y] - 1][head[X]] == Type.food.value:
             result.add("down")
         return result
     
@@ -292,7 +285,7 @@ class MySnakeData:
     
     # 餌のない安全な方向のリスト
     def no_foods(self) -> set[str]:
-            return self.safes_around() - self.foods_around()
+        return self.safes_around() - self.foods_around()
         
     # 現在の進行方向
     def heading(self):

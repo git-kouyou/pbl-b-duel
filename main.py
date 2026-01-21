@@ -50,6 +50,7 @@ def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_dat
 
     for move in safes_around:
         next_head = my_snake_data.next_head_position(my_snake_data.head(), move)
+        print(next_head)
         if board_data.is_reachable(next_head, my_snake_data.tail()):
             reachable_your_tail.add(move)
         if board_data.is_reachable(next_head, enemy_snake_data.tail()):
