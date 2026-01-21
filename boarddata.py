@@ -31,6 +31,23 @@ class BoardData:
             BoardData.width = game_state["board"]["width"]
         self.foods = set([(food["x"], food["y"]) for food in game_state["board"]["food"]])
         self.each_snake_bodies = [[(body["x"], body["y"]) for body in snake["body"]] for snake in game_state["board"]["snakes"]]
+
+        if game_state["board"]["snakes"][0]["id"] == game_state["you"]["id"]:
+            my_snake_data_input = game_state["board"]["snakes"][0]
+            enemy_snake_data_input = game_state["board"]["snakes"][1]
+
+            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
+            my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+        else:
+            my_snake_data_input = game_state["board"]["snakes"][1]
+            enemy_snake_data_input = game_state["board"]["snakes"][0]
+
+            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
+            my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+
+        self.enemy_snake_data = enemy_snake_data
+        self.my_snake_data = my_snake_data
+
         self.generate_board()
 
     def generate_board(self):
@@ -43,6 +60,9 @@ class BoardData:
                 ate_food = 1
             for i, body in enumerate(list(bodies)[:-1]):
                 self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 2 + ate_food  # 頭に近いほど値が大きい
+        if self.my_snake_data.length() > self.enemy_snake_data.length():
+            for pos in self.enemy_snake_data.head_around():
+                self.board[pos[Y]][pos[X]] = Type.wall.value
 
     def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
         if start == goal:

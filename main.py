@@ -57,7 +57,7 @@ def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_dat
             reachable_enemy_tail.add(move)
 
     if my_snake_data.head()[X] < enemy_snake_data.head()[X]:
-            approach_enemy_head.add("right")
+        approach_enemy_head.add("right")
     if my_snake_data.head()[X] > enemy_snake_data.head()[X]:
         approach_enemy_head.add("left")
     if my_snake_data.head()[Y] < enemy_snake_data.head()[Y]:
@@ -116,26 +116,8 @@ def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_dat
 # 初期化やデバッグ表示など
 def move(game_state: typing.Dict) -> typing.Dict:
     board_data = BoardData(game_state)
-    my_snake_data_input = None
-    enemy_snake_data_input = None
-    my_snake_data = None
-    enemy_snake_data = None
-
-    if len(game_state["board"]["snakes"]) < 2:
-        return {"move": "up"}
-    else:
-        if game_state["board"]["snakes"][0]["id"] == game_state["you"]["id"]:
-            my_snake_data_input = game_state["board"]["snakes"][0]
-            enemy_snake_data_input = game_state["board"]["snakes"][1]
-
-            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
-            my_snake_data = MySnakeData(board_data=board_data, my_snake_data=my_snake_data_input, enemy_snake_data=enemy_snake_data)
-        else:
-            my_snake_data_input = game_state["board"]["snakes"][1]
-            enemy_snake_data_input = game_state["board"]["snakes"][0]
-
-            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
-            my_snake_data = MySnakeData(board_data=board_data, my_snake_data=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+    my_snake_data = board_data.my_snake_data
+    enemy_snake_data = board_data.enemy_snake_data
 
     reachable = []
     if my_snake_data.length() >= 3:

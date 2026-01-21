@@ -42,10 +42,14 @@ class EnemySnakeData:
     # 頭回り
     def head_around(self):
         result = set()
-        result.add((self.head()[X] + 1, self.head()[Y]))
-        result.add((self.head()[X] - 1, self.head()[Y]))
-        result.add((self.head()[X], self.head()[Y] + 1))
-        result.add((self.head()[X], self.head()[Y] - 1))
+        if self.head()[X] + 1 < BoardData.width:
+            result.add((self.head()[X] + 1, self.head()[Y]))
+        if self.head()[X] - 1 >= 0:
+            result.add((self.head()[X] - 1, self.head()[Y]))
+        if self.head()[Y] + 1 < BoardData.height:
+            result.add((self.head()[X], self.head()[Y] + 1))
+        if self.head()[Y] - 1 >= 0:
+            result.add((self.head()[X], self.head()[Y] - 1))
         return result
 
 class MySnakeData:
@@ -55,10 +59,7 @@ class MySnakeData:
     isDisignated: bool
     initialized = False
 
-    def __init__(self, board_data: BoardData, my_snake_data, enemy_snake_data: EnemySnakeData, bodies = list(), foods = []):
-        if my_snake_data == {} and bodies == []:
-            print("cannot initialize GameData!")
-            exit(1)
+    def __init__(self, board_data: BoardData, my_snake_data_input, enemy_snake_data: EnemySnakeData):
 
         # 初生成時にクラス変数を初期化
         if not MySnakeData.initialized:
@@ -66,24 +67,22 @@ class MySnakeData:
             MySnakeData.status = Status.loop
             #初期化済み
             MySnakeData.initialized = True
-            print(f"Snake:{my_snake_data['name']}Data initialized")
+            print(f"Snake:{my_snake_data_input['name']}Data initialized")
 
 
         # 盤面情報
         self.board = board_data.board
         # 体の座標(tuple)一覧
         self.bodies = deque()
-        if not bodies:
-            seen = set()
-            for body in my_snake_data["body"]:
-                pos = (body["x"], body["y"])
-                if pos not in seen:
-                    seen.add(pos)
-                    self.bodies.append(pos)
-        else:
-            self.bodies = bodies
+        seen = set()
+        for body in my_snake_data_input["body"]:
+            pos = (body["x"], body["y"])
+            if pos not in seen:
+                seen.add(pos)
+                self.bodies.append(pos)
+  
         # 残り体力
-        self.health = my_snake_data["health"]
+        self.health = my_snake_data_input["health"]
 
         # 敵の情報
         self.enemy_snake_data = enemy_snake_data
