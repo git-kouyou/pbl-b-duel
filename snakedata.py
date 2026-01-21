@@ -10,25 +10,64 @@ class Status(Enum):
     loop = 0
     eat_food = 1
 
-class SnakeData:
+class EnemySnakeData:
+    def __init__(self, enemy_snake_data):
+        # 体の座標(tuple)一覧
+        self.bodies = enemy_snake_data["body"]
+        # 体の座標(tuple)一覧
+        self.bodies = deque()
+        seen = set()
+        for body in enemy_snake_data["body"]:
+            pos = (body["x"], body["y"])
+            if pos not in seen:
+                seen.add(pos)
+                self.bodies.append(pos)
+
+    # 頭の座標
+    def head(self):
+        return self.bodies[0]
+    
+    # 首の座標
+    def neck(self):
+        return self.bodies[1] if len(self.bodies) > 1  else self.head()
+    
+    # 尾の座標
+    def tail(self):
+        return self.bodies[-1]
+    
+    # 体の長さ
+    def length(self):
+        return len(self.bodies)
+    
+    # 頭回り
+    def head_around(self):
+        result = set()
+        result.add((self.head()[X] + 1, self.head()[Y]))
+        result.add((self.head()[X] - 1, self.head()[Y]))
+        result.add((self.head()[X], self.head()[Y] + 1))
+        result.add((self.head()[X], self.head()[Y] - 1))
+        return result
+
+class MySnakeData:
     previous_foods:typing.Set[typing.Tuple[int, int]]
     status: Status = Status.loop
     disignated_route: deque
     isDisignated: bool
     initialized = False
 
-    def __init__(self, board_data: BoardData, snake_data, bodies = set(), foods = []):
-        if snake_data == {} and bodies == []:
+    def __init__(self, board_data: BoardData, my_snake_data, enemy_snake_data: EnemySnakeData, bodies = list(), foods = []):
+        if my_snake_data == {} and bodies == []:
             print("cannot initialize GameData!")
             exit(1)
 
         # 初生成時にクラス変数を初期化
-        if not SnakeData.initialized:
+        if not MySnakeData.initialized:
             # GameData.previous_foods = set((food["x"], food["y"]) for food in game_state["board"]["food"])
-            SnakeData.status = Status.loop
+            MySnakeData.status = Status.loop
             #初期化済み
-            SnakeData.initialized = True
-            print(f"Snake:{snake_data['name']}Data initialized")
+            MySnakeData.initialized = True
+            print(f"Snake:{my_snake_data['name']}Data initialized")
+
 
         # 盤面情報
         self.board = board_data.board
@@ -36,7 +75,7 @@ class SnakeData:
         self.bodies = deque()
         if not bodies:
             seen = set()
-            for body in snake_data["body"]:
+            for body in my_snake_data["body"]:
                 pos = (body["x"], body["y"])
                 if pos not in seen:
                     seen.add(pos)
@@ -44,7 +83,10 @@ class SnakeData:
         else:
             self.bodies = bodies
         # 残り体力
-        self.health = snake_data["health"]
+        self.health = my_snake_data["health"]
+
+        # 敵の情報
+        self.enemy_snake_data = enemy_snake_data
 
     # 餌を食べた直後ならばTrueを返す
     # def ate_food(self):
@@ -92,6 +134,16 @@ class SnakeData:
             result.add("left")
         if 0 <= head[Y] - 1 < BoardData.height and self.board[head[Y] - 1][head[X]] >= Type.body.value + 1:
             result.add("down")
+        
+        if (head[X] + 1, head[Y]) in self.enemy_snake_data.head_around():
+            result.add("right")
+        if (head[X] , head[Y] + 1) in self.enemy_snake_data.head_around():
+            result.add("up")
+        if (head[X] - 1, head[Y]) in self.enemy_snake_data.head_around():
+            result.add("left")
+        if (head[X], head[Y] - 1) in self.enemy_snake_data.head_around():
+            result.add("down")
+
         return result
     
     # 周りの餌のある方向のリスト
@@ -110,17 +162,7 @@ class SnakeData:
     
     # 周りの安全な方向のリスト
     def safes_around(self) -> set[str]:
-        result = set()
-        head = self.head()
-        if 0 <= head[X] + 1 < BoardData.width and self.board[head[Y]][head[X] + 1] <= Type.safe.value:
-            result.add("right")
-        if 0 <= head[Y] + 1 < BoardData.height and self.board[head[Y] + 1][head[X]] <= Type.safe.value:
-            result.add("up")
-        if 0 <= head[X] - 1 < BoardData.width and self.board[head[Y]][head[X] - 1] <= Type.safe.value:
-            result.add("left")   
-        if 0 <= head[Y] - 1 < BoardData.height and self.board[head[Y] - 1][head[X]] <= Type.safe.value:
-            result.add("down")
-        return result
+        return set(["right", "up", "left", "down"]) - self.unsafes_around()
     
     # 餌のない安全な方向のリスト
     def no_foods(self) -> set[str]:

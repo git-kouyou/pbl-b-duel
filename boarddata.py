@@ -5,7 +5,7 @@ from collections import deque
 from enum import Enum
 
 if TYPE_CHECKING:
-    from snakedata import SnakeData
+    from snakedata import MySnakeData, EnemySnakeData
 
 X = 0
 Y = 1
@@ -108,7 +108,7 @@ class BoardData:
         else:
             return "left"
         
-    def foods_only_you_can_reach(self, your_snake_data: SnakeData, enemy_snake_data: SnakeData) -> set[tuple[int, int]]:
+    def foods_only_you_can_reach(self, your_snake_data: MySnakeData, enemy_snake_data: EnemySnakeData) -> set[tuple[int, int]]:
         result = set()
         for food in self.foods:
             distance_between_your_snake = abs(your_snake_data.head()[X] - food[X]) + abs(your_snake_data.head()[Y] - food[Y])
