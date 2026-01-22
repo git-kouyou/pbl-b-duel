@@ -155,7 +155,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
         print(f"reachable moves: {reachable}")
         # print(f"foods only you can reach: {board_data.foods_only_you_can_reach(my_snake_data, enemy_snake_data)}")
         print(f"MOVE {game_state['turn']}: {next_move_result}")
-        board_data.print_board()
+        # board_data.print_board()
 
     BoardData.previous_foods = board_data.foods.copy()
     
