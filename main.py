@@ -77,8 +77,9 @@ def move(game_state: typing.Dict) -> typing.Dict:
         board_data.print_board()
         for food in board_data.foods:
             dist_my = board_data.is_reachable(my_snake_data.head(), food)
-            dist_enemy = board_data.is_reachable(enemy_snake_data.head(), food, True)
-            print(f"food at {food}: me = {dist_my}, enemy = {dist_enemy}")
+            dist_enemy = board_data.is_reachable(enemy_snake_data.head(), food, True)            
+            next_dist = board_data.is_reachable(my_snake_data.next_head_position(my_snake_data.head(), next_move_result), food)
+            print(f"food at {food}: me = {dist_my}, enemy = {dist_enemy}, next = {next_dist}")
         
 
     BoardData.previous_foods = board_data.foods.copy()
