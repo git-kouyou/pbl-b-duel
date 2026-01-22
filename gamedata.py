@@ -70,6 +70,8 @@ class BoardData:
                 self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 1 + ate_food  # 頭に近いほど値が大きい
         if self.my_snake_data.length() <= self.enemy_snake_data.length():
             for pos in self.enemy_snake_data.head_around():
+                if pos == self.enemy_snake_data.neck():
+                    continue
                 self.board[pos[Y]][pos[X]] = Type.enemy_head_predict.value
 
     def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
