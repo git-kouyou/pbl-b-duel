@@ -149,10 +149,10 @@ class BoardData:
             distance_between_your_snake = abs(self.my_snake_data.head()[X] - food[X]) + abs(self.my_snake_data.head()[Y] - food[Y])
             distance_between_enemy_snake = abs(self.enemy_snake_data.head()[X] - food[X]) + abs(self.enemy_snake_data.head()[Y] - food[Y])
             if self.my_snake_data.length() <= self.enemy_snake_data.length():
-                if distance_between_your_snake <= distance_between_enemy_snake:
+                if distance_between_your_snake < distance_between_enemy_snake:
                     result.add(food)
             else:
-                if distance_between_your_snake < distance_between_enemy_snake:
+                if distance_between_your_snake <= distance_between_enemy_snake:
                     result.add(food)
         return result
     
@@ -233,7 +233,7 @@ class BoardData:
             #敵の尾に近づくと加点
             enemy_tail_offset = offset[X] * (enemy_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.tail()[Y] - my_snake_data.head()[Y])
             if enemy_tail_offset or my_tail_offset > 0:
-                point += 10
+                point += 5
 
             #敵の頭に近づくと加点
             # enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
