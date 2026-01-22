@@ -32,6 +32,17 @@ def end(game_state: typing.Dict):
     print("GAME OVER\n")
 
 def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_data: EnemySnakeData) -> str:
+    direction_points = {}
+    for move in my_snake_data.safes_around():
+        direction_points[move] = board_data.point_direction(move)
+
+    next_move = max(direction_points, key = lambda k: direction_points[k])
+
+    if next_move:
+        return next_move
+    else: 
+        return random.choice(list(my_snake_data.empty_around()))
+    
     next_move = "None"
     safes_around = my_snake_data.safes_around()
 
@@ -44,9 +55,8 @@ def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_dat
     approach_nearest_food = set()
 
     foods_sorted = sorted(
-        board_data.foods_only_you_can_reach(my_snake_data, enemy_snake_data),
-        key=lambda food: ((abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])) - (abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y]))),
-        reverse=True)
+        board_data.foods_only_you_can_reach(),
+        key=lambda food: ((abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])) - (abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y]))))
 
     for move in safes_around:
         next_head = my_snake_data.next_head_position(my_snake_data.head(), move)
