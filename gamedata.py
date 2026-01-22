@@ -197,7 +197,7 @@ class BoardData:
                 #餌への距離が近いほど加点
                 distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
                 distance_from_enemy_snake = abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance / distance_from_my_snake
+                distance_offset = max_distance - (distance_from_my_snake / 2)
 
                 point += 4 * distance_offset # * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
 
