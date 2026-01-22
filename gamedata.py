@@ -10,7 +10,7 @@ Y = 1
 class Type(Enum):
     safe = 0
     food = -1
-    body = 2
+    body = 1
     wall = 100
     enemy_head_predict = 200
 
@@ -67,7 +67,7 @@ class BoardData:
             if bodies[0] in BoardData.previous_foods:
                 ate_food = 1
             for i, body in enumerate(list(bodies)[:-1]):
-                self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 2 + ate_food  # 頭に近いほど値が大きい
+                self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 1 + ate_food  # 頭に近いほど値が大きい
         if self.my_snake_data.length() <= self.enemy_snake_data.length():
             for pos in self.enemy_snake_data.head_around():
                 if self.board[pos[Y]][pos[X]] > Type.body.value:
