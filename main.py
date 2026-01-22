@@ -144,6 +144,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
     if DEBUG:
         print(f"safes around: {my_snake_data.safes_around()}, no_foods around: {my_snake_data.no_foods()}")
         print(f"foods: {board_data.foods}, bodies: {my_snake_data.bodies}")
+        print(f"reachable moves: {reachable}")
         # print(f"foods only you can reach: {board_data.foods_only_you_can_reach(my_snake_data, enemy_snake_data)}")
         print(f"MOVE {game_state['turn']}: {next_move_result}")
         board_data.print_board()

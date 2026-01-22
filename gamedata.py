@@ -63,6 +63,9 @@ class BoardData:
         if self.my_snake_data.length() <= self.enemy_snake_data.length():
             for pos in self.enemy_snake_data.head_around():
                 self.board[pos[Y]][pos[X]] = Type.wall.value
+        else:
+            enemy_snake_data_head = self.enemy_snake_data.head()
+            self.board[enemy_snake_data_head[Y]][enemy_snake_data_head[X]] = 1
 
     def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
         if start == goal:
@@ -198,6 +201,37 @@ class BoardData:
                 distance = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
                 distance_offset = max_distance - distance
                 point += distance_offset
+
+        if my_snake_data.length() <= enemy_snake_data.length():
+            #自分の尾に近づくと加点
+            my_tail_offset = offset[X] * (my_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (my_snake_data.tail()[Y] - my_snake_data.head()[Y])
+            if my_tail_offset > 0:
+                point += 10
+            
+            #敵の尾に近づくと加点
+            enemy_tail_offset = offset[X] * (enemy_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.tail()[Y] - my_snake_data.head()[Y])
+            if enemy_tail_offset > 0:
+                point += 10
+
+            #敵の頭に近づくと減点
+            enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
+            if enemy_head_offset > 0:
+                point -= 10
+        else:
+            #自分の尾に近づくと加点
+            my_tail_offset = offset[X] * (my_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (my_snake_data.tail()[Y] - my_snake_data.head()[Y])
+            if my_tail_offset > 0:
+                point += 10
+            
+            #敵の尾に近づくと加点
+            enemy_tail_offset = offset[X] * (enemy_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.tail()[Y] - my_snake_data.head()[Y])
+            if enemy_tail_offset > 0:
+                point += 10
+
+            #敵の頭に近づくと加点
+            enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
+            if enemy_head_offset > 0:
+                point += 10
 
         return point
     
