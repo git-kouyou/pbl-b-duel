@@ -74,7 +74,7 @@ class BoardData:
                     continue
                 self.board[pos[Y]][pos[X]] = Type.enemy_head_predict.value
 
-    def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> int:
+    def is_reachable(self, start: tuple[int, int], goal: tuple[int, int], enemy = False) -> int:
         if start == goal:
             return 0
  
@@ -88,7 +88,7 @@ class BoardData:
                 nx, ny = x + dx, y + dy
                 nd = depth + 1
                 if 0 <= nx < BoardData.width and 0 <= ny < BoardData.height and not visited[ny][nx]:
-                    if self.board[ny][nx] <= nd:
+                    if self.board[ny][nx] <= nd or (enemy and self.board[ny][nx] == Type.enemy_head_predict.value):
                         if (nx, ny) == goal:
                             return nd
                         visited[ny][nx] = True
@@ -149,7 +149,7 @@ class BoardData:
         result = set()
         for food in self.foods:
             distance_between_your_snake = self.is_reachable(self.my_snake_data.head(), food)
-            distance_between_enemy_snake = self.is_reachable(self.enemy_snake_data.head(), food)
+            distance_between_enemy_snake = self.is_reachable(self.enemy_snake_data.head(), food, enemy=True)
             if self.my_snake_data.length() <= self.enemy_snake_data.length():
                 if distance_between_your_snake < distance_between_enemy_snake:
                     result.add(food)
@@ -158,7 +158,7 @@ class BoardData:
                     result.add(food)
         return result
     
-    def point_direction(self, direction: str) -> int:
+    def point_direction(self, direction: str):
         my_snake_data = self.my_snake_data
         enemy_snake_data = self.enemy_snake_data
         max_distance = BoardData.width + BoardData.height + 2

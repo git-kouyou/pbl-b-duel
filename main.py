@@ -72,9 +72,14 @@ def move(game_state: typing.Dict) -> typing.Dict:
         print(f"safes around: {my_snake_data.safes_around()}, no_foods around: {my_snake_data.no_foods()}, empty around: {my_snake_data.empty_around()}")
         print(f"foods: {board_data.foods}, bodies: {my_snake_data.bodies}")
         print(f"reachable moves: {reachable}")
-        # print(f"foods only you can reach: {board_data.foods_only_you_can_reach(my_snake_data, enemy_snake_data)}")
+        print(f"foods only you can reach: {board_data.foods_only_you_can_reach()}")
         print(f"MOVE {game_state['turn']}: {next_move_result}")
-        # board_data.print_board()
+        board_data.print_board()
+        for food in board_data.foods:
+            dist_my = board_data.is_reachable(my_snake_data.head(), food)
+            dist_enemy = board_data.is_reachable(enemy_snake_data.head(), food)
+            print(f"food at {food}: me = {dist_my}, enemy = {dist_enemy}")
+        
 
     BoardData.previous_foods = board_data.foods.copy()
     
