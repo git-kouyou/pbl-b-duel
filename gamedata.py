@@ -74,9 +74,9 @@ class BoardData:
                     continue
                 self.board[pos[Y]][pos[X]] = Type.enemy_head_predict.value
 
-    def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
+    def is_reachable(self, start: tuple[int, int], goal: tuple[int, int]) -> int:
         if start == goal:
-            return True
+            return 0
  
         visited = [[False] * BoardData.width for _ in range(BoardData.height)]
         visited[start[Y]][start[X]] = True
@@ -90,16 +90,16 @@ class BoardData:
                 if 0 <= nx < BoardData.width and 0 <= ny < BoardData.height and not visited[ny][nx]:
                     if self.board[ny][nx] <= nd:
                         if (nx, ny) == goal:
-                            return True
+                            return nd
                         visited[ny][nx] = True
                         queue.append((nx, ny, nd))
-        return False
+        return 10000
     
-    def is_reachable_food_avoidance(self, start: tuple[int, int], goal: tuple[int, int]) -> bool:
+    def is_reachable_food_avoidance(self, start: tuple[int, int], goal: tuple[int, int]) -> int:
         if start == goal:
-            return True
+            return 0
         if self.board[start[Y]][start[X]] == Type.food.value or self.board[goal[Y]][goal[X]] == Type.food.value:
-            return False
+            return 10000
         visited = [[False] * BoardData.width for _ in range(BoardData.height)]
         visited[start[Y]][start[X]] = True
 
@@ -112,15 +112,15 @@ class BoardData:
                 if 0 <= nx < BoardData.width and 0 <= ny < BoardData.height and not visited[ny][nx]:
                     if 0 <= self.board[ny][nx] <= nd:
                         if (nx, ny) == goal:
-                            return True
+                            return nd
                         visited[ny][nx] = True
                         queue.append((nx, ny, nd))
-        return False
+        return 10000
     
-    def is_reachable_enemy_tail(self, direction) -> bool:
+    def is_reachable_enemy_tail(self, direction) -> int:
         return self.is_reachable(self.my_snake_data.next_head_position(self.my_snake_data.head(), direction), self.enemy_snake_data.tail())
     
-    def is_reachable_my_tail(self, direction) -> bool:
+    def is_reachable_my_tail(self, direction) -> int:
         return self.is_reachable(self.my_snake_data.next_head_position(self.my_snake_data.head(), direction), self.my_snake_data.tail())
     
     # デバッグ用盤面表示
@@ -148,8 +148,8 @@ class BoardData:
     def foods_only_you_can_reach(self) -> set[tuple[int, int]]:
         result = set()
         for food in self.foods:
-            distance_between_your_snake = abs(self.my_snake_data.head()[X] - food[X]) + abs(self.my_snake_data.head()[Y] - food[Y])
-            distance_between_enemy_snake = abs(self.enemy_snake_data.head()[X] - food[X]) + abs(self.enemy_snake_data.head()[Y] - food[Y])
+            distance_between_your_snake = self.is_reachable(self.my_snake_data.head(), food)
+            distance_between_enemy_snake = self.is_reachable(self.enemy_snake_data.head(), food)
             if self.my_snake_data.length() <= self.enemy_snake_data.length():
                 if distance_between_your_snake < distance_between_enemy_snake:
                     result.add(food)
@@ -181,23 +181,25 @@ class BoardData:
             return point
         
         #到達可能判定
-        reachable_enemy_head = self.is_reachable_enemy_tail(direction)
-        self_reachable_my_tail = self.is_reachable_my_tail(direction)
+        distance_from_enemy_tail = self.is_reachable_enemy_tail(direction)
+        distance_from_my_tail = self.is_reachable_my_tail(direction)
 
         #敵の尾に到達可能、自分の尾に到達可能なら加点
-        if reachable_enemy_head or self_reachable_my_tail:
+        if distance_from_enemy_tail < 10000 or distance_from_my_tail < 10000:
             point += 200
         
         #自分のみ到達できる餌に近づく場合加点
         for food in self.foods_only_you_can_reach():
             #餌に近づけば加点
-            approach_offset = offset[X] * (food[X] - my_snake_data.head()[X]) + offset[Y] * (food[Y] - my_snake_data.head()[Y])
+            distance_food_after_move = self.is_reachable(my_snake_data.next_head_position(my_snake_data.head(), direction), food)
+
+            distance_food_my_snake = self.is_reachable(my_snake_data.head(), food)
+            # distance_food_enemy_snake = self.is_reachable(enemy_snake_data.head(), food)
             
-            if approach_offset > 0:
+            if distance_food_after_move < 10000:
                 #餌への距離が近いほど加点
-                distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
-                distance_from_enemy_snake = abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance - (distance_from_my_snake / 2)
+                distance_food_my_snake = self.is_reachable(my_snake_data.head(), food)
+                distance_offset = max_distance - (distance_food_my_snake / 2)
 
                 point += 4 * distance_offset # * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
 

@@ -24,7 +24,6 @@ def info() -> typing.Dict:
 # start is called when your Battlesnake begins a game
 def start(game_state: typing.Dict):
     BoardData.is_initialized = False
-    board_data = BoardData(game_state)
     print("GAME START")
 
 # end is called when your Battlesnake finishes a game
@@ -50,86 +49,6 @@ def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_dat
             return random.choice(list(empty_around))
         else:
             return "up"
-    
-    next_move = "None"
-    safes_around = my_snake_data.safes_around()
-
-    reachable_your_tail = set()
-    reachable_enemy_tail = set()
-    approach_enemy_head = set()
-    approach_enemy_tail = set()
-    approach_your_tail = set()
-    foods_sorted = set()
-    approach_nearest_food = set()
-
-    foods_sorted = sorted(
-        board_data.foods_only_you_can_reach(),
-        key=lambda food: ((abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])) - (abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y]))))
-
-    for move in safes_around:
-        next_head = my_snake_data.next_head_position(my_snake_data.head(), move)
-        print(next_head)
-        if board_data.is_reachable(next_head, my_snake_data.tail()):
-            reachable_your_tail.add(move)
-        if board_data.is_reachable(next_head, enemy_snake_data.tail()):
-            reachable_enemy_tail.add(move)
-
-    if my_snake_data.head()[X] < enemy_snake_data.head()[X]:
-        approach_enemy_head.add("right")
-    if my_snake_data.head()[X] > enemy_snake_data.head()[X]:
-        approach_enemy_head.add("left")
-    if my_snake_data.head()[Y] < enemy_snake_data.head()[Y]:
-        approach_enemy_head.add("up")
-    if my_snake_data.head()[Y] > enemy_snake_data.head()[Y]:
-        approach_enemy_head.add("down")
-
-    if my_snake_data.head()[X] < enemy_snake_data.tail()[X]:
-        approach_enemy_tail.add("right")
-    if my_snake_data.head()[X] > enemy_snake_data.tail()[X]:
-        approach_enemy_tail.add("left")
-    if my_snake_data.head()[Y] < enemy_snake_data.tail()[Y]:
-        approach_enemy_tail.add("up")
-    if my_snake_data.head()[Y] > enemy_snake_data.tail()[Y]:
-        approach_enemy_tail.add("down")
-
-    if my_snake_data.head()[X] < my_snake_data.tail()[X]:
-        approach_your_tail.add("right")
-    if my_snake_data.head()[X] > my_snake_data.tail()[X]:
-        approach_your_tail.add("left")
-    if my_snake_data.head()[Y] < my_snake_data.tail()[Y]:
-        approach_your_tail.add("up")
-    if my_snake_data.head()[Y] > my_snake_data.tail()[Y]:
-        approach_your_tail.add("down")
-
-    if foods_sorted:
-        if my_snake_data.head()[X] < foods_sorted[0][X]:
-            approach_nearest_food.add("right")
-        if my_snake_data.head()[X] > foods_sorted[0][X]:
-            approach_nearest_food.add("left")
-        if my_snake_data.head()[Y] < foods_sorted[0][Y]:
-            approach_nearest_food.add("up")
-        if my_snake_data.head()[Y] > foods_sorted[0][Y]:
-            approach_nearest_food.add("down")
-
-    #体が極小の時: 優先度1
-    if my_snake_data.length() <= 2:
-        if safes_around & approach_nearest_food:
-            print("tire0")
-            return random.choice(list(safes_around & approach_nearest_food))
-    elif True or my_snake_data.length() > enemy_snake_data.length():
-        safe = (reachable_enemy_tail | reachable_your_tail) & safes_around
-        if safe & approach_nearest_food:
-            print("tire1")
-            next_move = random.choice(list(safe & approach_nearest_food))
-            return next_move
-        elif safe:
-            print("tire2")
-            next_move = random.choice(list(safe))
-            return next_move
-        
-    if my_snake_data.empty_around():
-        next_move = random.choice(list(my_snake_data.empty_around()))
-    return next_move
 
 # 初期化やデバッグ表示など
 def move(game_state: typing.Dict) -> typing.Dict:
