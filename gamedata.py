@@ -12,6 +12,7 @@ class Type(Enum):
     food = -1
     body = 1
     wall = 100
+    enemy_head_predict = 200
 
 class Status(Enum):
     loop = 0
@@ -62,7 +63,7 @@ class BoardData:
                 self.board[body[Y]][body[X]] = len(bodies) - i + Type.body.value - 1 + ate_food  # 頭に近いほど値が大きい
         if self.my_snake_data.length() <= self.enemy_snake_data.length():
             for pos in self.enemy_snake_data.head_around():
-                self.board[pos[Y]][pos[X]] = Type.wall.value
+                self.board[pos[Y]][pos[X]] = Type.enemy_head_predict.value
         else:
             enemy_snake_data_head = self.enemy_snake_data.head()
             self.board[enemy_snake_data_head[Y]][enemy_snake_data_head[X]] = 1
@@ -200,7 +201,7 @@ class BoardData:
                 max_distance = BoardData.width + BoardData.height + 1
                 distance = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
                 distance_offset = max_distance - distance
-                point += distance_offset
+                point += 2 * distance_offset
 
         if my_snake_data.length() <= enemy_snake_data.length():
             #自分の尾に近づくと加点
@@ -228,10 +229,10 @@ class BoardData:
             if enemy_tail_offset > 0:
                 point += 10
 
-            #敵の頭に近づくと加点
-            enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
-            if enemy_head_offset > 0:
-                point += 10
+            # #敵の頭に近づくと加点
+            # enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
+            # if enemy_head_offset > 0:
+            #     point += 10
 
         return point
     
@@ -335,13 +336,13 @@ class MySnakeData:
         result = set()
         head = self.head()
         board = self.board_data.board
-        if 0 <= head[X] + 1 < BoardData.width and board[head[Y]][head[X] + 1] <= Type.safe.value:
+        if 0 <= head[X] + 1 < BoardData.width and (board[head[Y]][head[X] + 1] <= Type.safe.value or board[head[Y]][head[X] + 1] == Type.enemy_head_predict.value):
             result.add("right")
-        if 0 <= head[Y] + 1 < BoardData.height and board[head[Y] + 1][head[X]] <= Type.safe.value:
+        if 0 <= head[Y] + 1 < BoardData.height and (board[head[Y] + 1][head[X]] <= Type.safe.value or board[head[Y] + 1][head[X]] == Type.enemy_head_predict.value):
             result.add("up")
-        if 0 <= head[X] - 1 < BoardData.width and board[head[Y]][head[X] - 1] <= Type.safe.value:
+        if 0 <= head[X] - 1 < BoardData.width and (board[head[Y]][head[X] - 1] <= Type.safe.value or board[head[Y]][head[X] - 1] == Type.enemy_head_predict.value):
             result.add("left")
-        if 0 <= head[Y] - 1 < BoardData.height and board[head[Y] - 1][head[X]] <= Type.safe.value:
+        if 0 <= head[Y] - 1 < BoardData.height and (board[head[Y] - 1][head[X]] <= Type.safe.value or board[head[Y] - 1][head[X]] == Type.enemy_head_predict.value):
             result.add("down")
         return result
     
