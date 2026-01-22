@@ -192,9 +192,11 @@ class BoardData:
             if approach_offset > 0:
                 #餌への距離が近いほど加点
                 max_distance = BoardData.width + BoardData.height + 1
-                distance = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance - distance
-                point += 3 * distance_offset
+                distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
+                distance_from_enemy_snake = abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y])
+                distance_offset = max_distance - distance_from_my_snake
+
+                point += 3 * distance_offset * ((distance_from_my_snake - distance_from_enemy_snake) / 4)
 
         #餌に近づくと加点(ただし敵に近いやつはそこまで加点しない)
         for food in self.foods:
@@ -204,8 +206,8 @@ class BoardData:
             if approach_offset > 0:
                 #餌への距離が近いほど加点
                 max_distance = BoardData.width + BoardData.height + 1
-                distance = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance - distance
+                distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
+                distance_offset = max_distance - distance_from_my_snake
                 point += distance_offset
 
         if my_snake_data.length() <= enemy_snake_data.length():
