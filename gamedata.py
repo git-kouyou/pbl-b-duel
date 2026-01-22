@@ -228,7 +228,7 @@ class BoardData:
             #敵の頭に近づくと減点
             enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
             if enemy_head_offset > 0:
-                point -= 20
+                point -= 30
         else:
             #自分の尾に近づくと加点
             my_tail_offset = offset[X] * (my_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (my_snake_data.tail()[Y] - my_snake_data.head()[Y])
@@ -239,9 +239,9 @@ class BoardData:
                 point += 10
 
             #敵の頭に近づくと加点
-            enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
-            if enemy_head_offset > 0:
-                point += 10
+            # enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
+            # if enemy_head_offset > 0:
+            #     point += 10
 
         return point
     
