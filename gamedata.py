@@ -33,18 +33,25 @@ class BoardData:
         self.foods = set([(food["x"], food["y"]) for food in game_state["board"]["food"]])
         self.each_snake_bodies = [[(body["x"], body["y"]) for body in snake["body"]] for snake in game_state["board"]["snakes"]]
 
-        if game_state["board"]["snakes"][0]["id"] == game_state["you"]["id"]:
-            my_snake_data_input = game_state["board"]["snakes"][0]
-            enemy_snake_data_input = game_state["board"]["snakes"][1]
-
-            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
-            my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+        if len(game_state["board"]["snakes"]) == 1:
+            snake_data_input = game_state["board"]["snakes"][0]
+            enemy_snake_data = EnemySnakeData(snake_data_input)
+            my_snake_data = MySnakeData(board_data=self, my_snake_data_input=snake_data_input, enemy_snake_data=snake_data_input)
+        elif len(game_state["board"]["snakes"]) == 0:
+            return
         else:
-            my_snake_data_input = game_state["board"]["snakes"][1]
-            enemy_snake_data_input = game_state["board"]["snakes"][0]
+            if game_state["board"]["snakes"][0]["id"] == game_state["you"]["id"]:
+                my_snake_data_input = game_state["board"]["snakes"][0]
+                enemy_snake_data_input = game_state["board"]["snakes"][1]
 
-            enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
-            my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+                enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
+                my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
+            else:
+                my_snake_data_input = game_state["board"]["snakes"][1]
+                enemy_snake_data_input = game_state["board"]["snakes"][0]
+
+                enemy_snake_data = EnemySnakeData(enemy_snake_data=enemy_snake_data_input)
+                my_snake_data = MySnakeData(board_data=self, my_snake_data_input=my_snake_data_input, enemy_snake_data=enemy_snake_data)
 
         self.enemy_snake_data = enemy_snake_data
         self.my_snake_data = my_snake_data
