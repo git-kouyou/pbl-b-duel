@@ -161,6 +161,7 @@ class BoardData:
     def point_direction(self, direction: str) -> int:
         my_snake_data = self.my_snake_data
         enemy_snake_data = self.enemy_snake_data
+        max_distance = BoardData.width + BoardData.height + 2
         point = 0
 
         # 進む方向のオフセット
@@ -194,24 +195,23 @@ class BoardData:
             
             if approach_offset > 0:
                 #餌への距離が近いほど加点
-                max_distance = BoardData.width + BoardData.height + 4
                 distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
                 distance_from_enemy_snake = abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance - distance_from_my_snake
+                distance_offset = max_distance / distance_from_my_snake
 
                 point += 4 * distance_offset # * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
 
         #餌に近づくと加点(ただし敵に近いやつはそこまで加点しない)
-        for food in self.foods:
-            #餌に近づけば加点
-            approach_offset = offset[X] * (food[X] - my_snake_data.head()[X]) + offset[Y] * (food[Y] - my_snake_data.head()[Y])
-            
-            if approach_offset > 0:
-                #餌への距離が近いほど加点
-                max_distance = BoardData.width + BoardData.height + 2
-                distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
-                distance_offset = max_distance - distance_from_my_snake
-                point += distance_offset
+        if self.foods_only_you_can_reach():
+            for food in self.foods:
+                #餌に近づけば加点
+                approach_offset = offset[X] * (food[X] - my_snake_data.head()[X]) + offset[Y] * (food[Y] - my_snake_data.head()[Y])
+                
+                if approach_offset > 0:
+                    #餌への距離が近いほど加点
+                    distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
+                    distance_offset = max_distance - distance_from_my_snake
+                    point += distance_offset
 
         if my_snake_data.length() <= enemy_snake_data.length():
             #自分の尾に近づくと加点
@@ -226,21 +226,21 @@ class BoardData:
 
             #敵の頭に近づくと減点
             enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
-            if enemy_head_offset > 0:
-                point -= 30
+            if 0 < enemy_head_offset < 5:
+                point -= 10
         else:
             #自分の尾に近づくと加点
             my_tail_offset = offset[X] * (my_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (my_snake_data.tail()[Y] - my_snake_data.head()[Y])
             
             #敵の尾に近づくと加点
             enemy_tail_offset = offset[X] * (enemy_snake_data.tail()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.tail()[Y] - my_snake_data.head()[Y])
-            if enemy_tail_offset or my_tail_offset > 0:
-                point += 5
+            if enemy_tail_offset > 0 or my_tail_offset > 0:
+                point += 15
 
-            #敵の頭に近づくと加点
-            # enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
-            # if enemy_head_offset > 0:
-            #     point += 10
+            #敵の頭に近づくと減点
+            enemy_head_offset = offset[X] * (enemy_snake_data.head()[X] - my_snake_data.head()[X]) + offset[Y] * (enemy_snake_data.head()[Y] - my_snake_data.head()[Y])
+            if enemy_head_offset > 0:
+                point -= 10
 
         return point
     
