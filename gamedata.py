@@ -25,6 +25,7 @@ class BoardData:
     is_initialized: bool = False
     previous_foods: set[tuple[int, int]] = set()
 
+    # データクラスの初期化
     def __init__(self, game_state: typing.Dict):
         if not BoardData.is_initialized:
             BoardData.is_initialized = True
@@ -199,9 +200,9 @@ class BoardData:
             if distance_food_after_move < distance_food_my_snake:
                 #餌への距離が近いほど加点
                 distance_food_my_snake = self.is_reachable(my_snake_data.head(), food)
-                distance_offset = 50 - (distance_food_my_snake / 2)
+                distance_offset = 100 - distance_food_my_snake
 
-                point += 4 * distance_offset # * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
+                point += distance_offset # * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
 
         #餌に近づくと加点(ただし敵に近いやつはそこまで加点しない)
         if self.foods_only_you_can_reach():
@@ -213,7 +214,7 @@ class BoardData:
                     #餌への距離が近いほど加点
                     distance_from_my_snake = abs(my_snake_data.head()[X] - food[X]) + abs(my_snake_data.head()[Y] - food[Y])
                     distance_offset = 50 - distance_from_my_snake
-                    point += 0.2 * distance_offset
+                    point += 0.5 * distance_offset
 
         if my_snake_data.length() <= enemy_snake_data.length():
             #自分の尾に近づくと加点
