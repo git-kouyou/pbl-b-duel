@@ -151,8 +151,12 @@ class BoardData:
         for food in self.foods:
             distance_between_your_snake = abs(self.my_snake_data.head()[X] - food[X]) + abs(self.my_snake_data.head()[Y] - food[Y])
             distance_between_enemy_snake = abs(self.enemy_snake_data.head()[X] - food[X]) + abs(self.enemy_snake_data.head()[Y] - food[Y])
-            if distance_between_your_snake < distance_between_enemy_snake:
-                result.add(food)
+            if self.my_snake_data.length() <= self.enemy_snake_data.length():
+                if distance_between_your_snake <= distance_between_enemy_snake:
+                    result.add(food)
+            else:
+                if distance_between_your_snake < distance_between_enemy_snake:
+                    result.add(food)
         return result
     
     def point_direction(self, direction: str) -> int:
@@ -196,7 +200,7 @@ class BoardData:
                 distance_from_enemy_snake = abs(enemy_snake_data.head()[X] - food[X]) + abs(enemy_snake_data.head()[Y] - food[Y])
                 distance_offset = max_distance - distance_from_my_snake
 
-                point += 3 * distance_offset * ((distance_from_my_snake - distance_from_enemy_snake) / 4)
+                point += 3 * distance_offset * ((distance_from_my_snake - distance_from_enemy_snake) + 1)
 
         #餌に近づくと加点(ただし敵に近いやつはそこまで加点しない)
         for food in self.foods:
