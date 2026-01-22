@@ -33,15 +33,20 @@ def end(game_state: typing.Dict):
 
 def next_move(board_data: BoardData, my_snake_data: MySnakeData, enemy_snake_data: EnemySnakeData) -> str:
     direction_points = {}
-    for move in my_snake_data.safes_around():
-        direction_points[move] = board_data.point_direction(move)
+    safes_around = my_snake_data.safes_around()
 
-    next_move = max(direction_points, key = lambda k: direction_points[k])
-
-    if next_move:
-        return next_move
-    else: 
+    if not safes_around:
         return random.choice(list(my_snake_data.empty_around()))
+    else:
+        for move in safes_around:
+            direction_points[move] = board_data.point_direction(move)
+
+        next_move = max(direction_points, key = lambda k: direction_points[k])
+
+        if next_move:
+            return next_move
+        else: 
+            return random.choice(list(my_snake_data.empty_around()))
     
     next_move = "None"
     safes_around = my_snake_data.safes_around()
